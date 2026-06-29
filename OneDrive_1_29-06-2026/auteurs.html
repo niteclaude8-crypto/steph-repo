@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auteurs & Œuvres - Vers en Lumière</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Styles spécifiques à la page Auteurs */
+        .authors-hero {
+            min-height: 40vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 3rem 2rem;
+            background: radial-gradient(circle at center, rgba(230,179,255,0.1) 0%, transparent 70%);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .authors-hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            background: linear-gradient(45deg, #ffd6e7, #e6b3ff, #b3ecff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .authors-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        .authors-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .authors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .author-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .author-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(255,255,255,0.1);
+            border-color: rgba(255, 214, 231, 0.3);
+        }
+
+        .author-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .author-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b9d, #c44569);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            font-family: 'Playfair Display', serif;
+            flex-shrink: 0;
+        }
+
+        .author-info h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: #ffd6e7;
+            margin-bottom: 0.3rem;
+        }
+
+        .author-info .author-years {
+            color: #b3ecff;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .author-bio {
+            font-size: 1rem;
+            line-height: 1.7;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .author-works {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1.5rem;
+        }
+
+        .author-works h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: #e6b3ff;
+            margin-bottom: 1rem;
+        }
+
+        .works-list {
+            list-style: none;
+        }
+
+        .works-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .works-list li::before {
+            content: '❦';
+            position: absolute;
+            left: 0;
+            color: #ff6b9d;
+            transition: all 0.3s ease;
+        }
+
+        .works-list li:hover {
+            color: #ffd6e7;
+            padding-left: 2rem;
+        }
+
+        .works-list li:hover::before {
+            transform: scale(1.3);
+        }
+
+        /* Modal de poème */
+        .poem-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .poem-modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .poem-modal-content {
+            background: linear-gradient(135deg, #1a0b2e 0%, #2e1a47 100%);
+            border-radius: 25px;
+            padding: 3rem;
+            max-width: 700px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .poem-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .poem-modal-close:hover {
+            color: #ff6b9d;
+            transform: rotate(90deg);
+        }
+
+        .poem-modal-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #ffd6e7;
+            margin-bottom: 0.5rem;
+        }
+
+        .poem-modal-content .poem-author-name {
+            color: #b3ecff;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+
+        .poem-modal-content .poem-full-text {
+            font-size: 1.2rem;
+            line-height: 2;
+            white-space: pre-line;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .authors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .author-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .poem-modal-content {
+                padding: 2rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo">
+                <i class="fas fa-feather-alt"></i>
+                <span>Vers en Lumière</span>
+            </a>
+            <button class="nav-toggle" onclick="toggleNav()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="../index.html" class="nav-link">Accueil</a>
+                <a href="creation.html" class="nav-link">Créer un poème</a>
+                <a href="vos-creations.html" class="nav-link">Vos créations</a>
+                <a href="auteurs.html" class="nav-link active">Auteurs & Œuvres</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="authors-hero">
+        <h1>Auteurs & Œuvres</h1>
+        <p>Découvrez les maîtres de la poésie française et leurs chefs-d'œuvre intemporels.</p>
+    </section>
+
+    <!-- Authors Section -->
+    <section class="authors-container">
+        <div class="authors-grid" id="authorsGrid">
+            <!-- Les auteurs seront injectés ici -->
+        </div>
+    </section>
+
+    <!-- Modal de poème -->
+    <div class="poem-modal-overlay" id="poemModal">
+        <div class="poem-modal-content">
+            <button class="poem-modal-close" onclick="closePoemModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 id="poemModalTitle"></h2>
+            <p class="poem-author-name" id="poemModalAuthor"></p>
+            <div class="poem-full-text" id="poemModalText"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p><i class="fas fa-heart"></i> Vers en Lumière - Où chaque mot trouve sa lumière</p>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script>
+        // Données des auteurs et leurs œuvres
+        const authors = [
+            {
+                name: "Arthur Rimbaud",
+                years: "1854 - 1891",
+                avatar: "AR",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.05 (1).jpeg",
+                bio: "Poète français précoce et visionnaire, Rimbaud a révolutionné la poésie avec son œuvre intense et symbolique. Il a cessé d'écrire à 21 ans, laissant une empreinte indélébile sur la littérature.",
+                works: [
+                    {
+                        title: "Le Dormeur du Val",
+                        text: `C'est un trou de verdure où chante une rivière
+Accrochant follement aux herbes des haillons
+D'argent ; où le soleil, de la montagne fière,
+Luit : c'est un petit val qui mousse de rayons.
+
+Un soldat jeune, bouche ouverte, tête nue,
+Et la nuque baignant dans le frais cresson bleu,
+Dort ; il est étendu dans l'herbe, sous la nue,
+Pâle dans son lit vert où la lumière pleut.
+
+Les pieds dans les glaïeuls, il dort. Souriant comme
+Sourirait un enfant malade, il fait un somme :
+Nature, berce-le chaudement : il a froid.
+
+Les parfums ne font pas frissonner sa narine ;
+Il dort dans le soleil, la main sur sa poitrine,
+Tranquille. Il a deux trous rouges au côté droit.`
+                    },
+                    {
+                        title: "Voyelles",
+                        text: `A noir, E blanc, I rouge, U vert, O bleu : voyelles,
+Je dirai quelque jour vos naissances latentes :
+A, noir corset velu des mouches éclatantes
+Qui bombinent autour des puanteurs cruelles,
+
+Golfes d'ombre ; E, candeur des vapeurs et des tentes,
+Lances des glaciers fiers, rois blancs, frissons d'ombelles ;
+I, pourpres, sang craché, rire des lèvres belles
+Dans la colère ou les ivresses pénitentes ;
+
+U, cycles, vibrements divins des mers virides,
+Paix des pâtis semés d'animaux, paix des rides
+Que l'alchimie imprime aux grands fronts studieux ;
+
+O, suprême Clairon plein des strideurs étranges,
+Silences traversés des Mondes et des Anges :
+- O l'Oméga, rayon violet de Ses Yeux !`
+                    },
+                    {
+                        title: "L'Étoile a pleuré rose",
+                        text: `L'étoile a pleuré rose au cœur de tes oreilles,
+L'infini roulé blanc de ta nuque à tes reins
+La mer a perlé rousse à tes mammes vermeilles
+Et l'Homme saigné noir à ton flanc souverain.`
+                    }
+                ]
+            },
+            {
+                name: "Charles Baudelaire",
+                years: "1821 - 1867",
+                avatar: "CB",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.05.jpeg",
+                bio: "Poète et critique d'art français, Baudelaire est l'auteur des 'Fleurs du Mal'. Son œuvre explore la beauté dans la décadence et la modernité, influençant profondément la poésie symboliste.",
+                works: [
+                    {
+                        title: "L'Albatros",
+                        text: `Souvent, pour s'amuser, les hommes d'équipage
+Prennent des albatros, vastes oiseaux des mers,
+Qui suivent, indolents compagnons de voyage,
+Le navire glissant sur les gouffres amers.
+
+À peine les ont-ils déposés sur les planches,
+Que ces rois de l'azur, maladroits et honteux,
+Laissent piteusement leurs grandes ailes blanches
+Comme des avirons traîner à côté d'eux.
+
+Ce voyageur ailé, comme il est gauche et veule !
+Lui, naguère si beau, qu'il est comique et laid !
+L'un agace son bec avec un brûle-gueule,
+L'autre mime, en boitant, l'infirme qui volait !
+
+Le Poète est semblable au prince des nuées
+Qui hante la tempête et se rit de l'archer ;
+Exilé sur le sol au milieu des huées,
+Ses ailes de géant l'empêchent de marcher.`
+                    },
+                    {
+                        title: "Correspondances",
+                        text: `La Nature est un temple où de vivants piliers
+Laissent parfois sortir de confuses paroles ;
+L'homme y passe à travers des forêts de symboles
+Qui l'observent avec des regards familiers.
+
+Comme de longs échos qui de loin se confondent
+Dans une ténébreuse et profonde unité,
+Vaste comme la nuit et comme la clarté,
+Les parfums, les couleurs et les sons se répondent.
+
+Il est des parfums frais comme des chairs d'enfants,
+Doux comme les hautbois, verts comme les prairies,
+- Et d'autres, corrompus, riches et triomphants,
+
+Ayant l'expansion des choses infinies,
+Comme l'ambre, le musc, le benjoin et l'encens,
+Qui chantent les transports de l'esprit et des sens.`
+                    },
+                    {
+                        title: "L'Invitation au voyage",
+                        text: `Mon enfant, ma sœur,
+Songe à la douceur
+D'aller là-bas vivre ensemble !
+Aimer à loisir,
+Aimer et mourir
+Au pays qui te ressemble !
+
+Les soleils mouillés
+De ces ciels brouillés
+Pour mon esprit ont les charmes
+Si mystérieux
+De tes traîtres yeux,
+Brillant à travers leurs larmes.
+
+Là, tout n'est qu'ordre et beauté,
+Luxe, calme et volupté.`
+                    }
+                ]
+            },
+            {
+                name: "Victor Hugo",
+                years: "1802 - 1885",
+                avatar: "VH",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.03 (2).jpeg",
+                bio: "Écrivain, dramaturge et poète romantique français, Hugo est l'un des plus grands auteurs de la littérature française. Son œuvre poétique mêle engagement politique et lyrisme personnel.",
+                works: [
+                    {
+                        title: "Demain, dès l'aube",
+                        text: `Demain, dès l'aube, à l'heure où blanchit la campagne,
+Je partirai. Vois-tu, je sais que tu m'attends.
+J'irai par la forêt, j'irai par la montagne.
+Je ne puis demeurer loin de toi plus longtemps.
+
+Je marcherai les yeux fixés sur mes pensées,
+Sans rien voir au dehors, sans entendre aucun bruit,
+Seul, inconnu, le dos courbé, les mains croisées,
+Triste, et le jour pour moi sera comme la nuit.
+
+Je ne regarderai ni l'or du soir qui tombe,
+Ni les voiles au loin descendant vers Harfleur,
+Et quand j'arriverai, je mettrai sur ta tombe
+Un bouquet de houx vert et de bruyère en fleur.`
+                    },
+                    {
+                        title: "La Légende des siècles",
+                        text: `Lorsque l'enfant paraît, le cercle de famille
+Applaudit à grands cris. Son doux regard qui brille
+Fait briller tous les yeux,
+Et les plus tristes fronts, les plus souillés peut-être,
+Se dérident soudain en voyant cet être
+Prendre un reflet des cieux.
+
+Il sourit, et le père, il sourit, et la mère,
+Il sourit, et la sœur, le frère et la nourrice,
+Tout le monde rit sous son sourire.
+
+Car il est l'avenir, il est l'innocence,
+Il est le pur regard qui rassure et qui pense,
+Il est le rayon d'or dans l'ombre immense.`
+                    }
+                ]
+            },
+            {
+                name: "Paul Verlaine",
+                years: "1844 - 1896",
+                avatar: "PV",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.04.jpeg",
+                bio: "Poète français symboliste, Verlaine est célèbre pour sa musicalité et son art de la suggestion. Son style délicat et mélancolique a profondément influencé la poésie moderne.",
+                works: [
+                    {
+                        title: "Chanson d'automne",
+                        text: `Les sanglots longs
+Des violons
+De l'automne
+Blessent mon cœur
+D'une langueur
+Monotone.
+
+Tout suffocant
+Et blême, quand
+Sonne l'heure,
+Je me souviens
+Des jours anciens
+Et je pleure ;
+
+Et je m'en vais
+Au vent mauvais
+Qui m'emporte
+Deçà, delà,
+Pareil à la
+Feuille morte.`
+                    },
+                    {
+                        title: "Il pleure dans mon cœur",
+                        text: `Il pleure dans mon cœur
+Comme il pleut sur la ville ;
+Quelle est cette langueur
+Qui pénètre mon cœur ?
+
+Ô bruit doux de la pluie
+Par terre et sur les toits !
+Pour un cœur qui s'ennuie,
+Ô le chant de la pluie !
+
+Il pleure sans raison
+Dans ce cœur qui s'écœure.
+Quoi ! nulle trahison ?...
+Ce deuil est sans raison.
+
+C'est bien la pire peine
+De ne savoir pourquoi
+Sans amour et sans haine
+Mon cœur a tant de peine !`
+                    }
+                ]
+            },
+            {
+                name: "Stéphane Mallarmé",
+                years: "1842 - 1898",
+                avatar: "SM",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.04 (1).jpeg",
+                bio: "Poète français majeur du mouvement symboliste, Mallarmé a poussé la poésie vers de nouvelles formes d'expression. Son œuvre hermétique et raffinée célèbre le mystère du langage.",
+                works: [
+                    {
+                        title: "Brise marine",
+                        text: `La chair est triste, hélas ! et j'ai lu tous les livres.
+Fuir ! là-bas fuir ! Je sens que des oiseaux sont ivres
+D'être parmi l'écume inconnue et les cieux !
+Rien, ni les vieux jardins reflétés par les yeux
+Ne retiendra ce cœur qui dans la mer se trempe
+Ô nuits ! ni la clarté déserte de ma lampe
+Sur le vide papier que la blancheur défend
+Et ni la jeune femme allaitant son enfant.
+
+Je partirai ! Steamer balançant ta mâture,
+Lève l'ancre pour une exotique nature !
+
+Un Ennui, désolé par les cruels espoirs,
+Croit encore à l'adieu suprême des mouchoirs !
+Et, peut-être, les mâts, invitant les orages
+Sont-ils de ceux qu'un vent penche sur les naufrages
+Perdus, sans mâts, sans mâts, ni fertiles îlots...
+Mais, ô mon cœur, entends le chant des matelots !`
+                    }
+                ]
+            },
+            {
+                name: "Louise Labé",
+                years: "1524 - 1566",
+                avatar: "LL",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.03 (1).jpeg",
+                bio: "Poétesse lyonnaise de la Renaissance, Louise Labé est l'une des premières femmes écrivaines de France. Ses sonnets d'amour passionnés marquent la poésie française du XVIe siècle.",
+                works: [
+                    {
+                        title: "Sonnet VIII",
+                        text: `Je vis, je meurs : je me brûle et je me noie.
+J'ai chaud extrême en endurant froidure :
+La vie m'est et trop molle et trop dure.
+J'ai grands ennuis entremêlés de joie.
+
+Tout à un coup je ris et je larmoie,
+Et en plaisir maint grief tourment j'endure :
+Mon bien s'en va, et à jamais il dure ;
+Tout en un coup je sèche et je verdoie.
+
+Ainsi Amour inconstamment me mène :
+Et quand je pense avoir plus de douleur,
+Sans y penser je me trouve hors de peine.
+
+Puis quand je crois ma joie être certaine,
+Et être au haut de mon désiré heur,
+Il me remet en mon premier malheur.`
+                    }
+                ]
+            },
+            {
+                name: "Alphonse de Lamartine",
+                years: "1790 - 1869",
+                avatar: "AL",
+                image: "../images/image des auteurs/WhatsApp Image 2026-06-13 at 19.26.03.jpeg",
+                bio: "Alphonse de Lamartine est un poète français majeur du romantisme. Ses vers mêlent lyrisme, méditation spirituelle et paysages intérieurs.",
+                works: [
+                    {
+                        title: "Le Lac",
+                        text: `J'étais seul, assis sur le bord d'une onde,
+Où des rayons mourants tremblaient dans l'ombre ;
+L'onde était transparente et la rive était sombre,
+Et mon cœur était plein de silence et d'effroi.
+
+Je regardais passer les heures sans défense,
+Et dans l'eau vive où mon âme se reflète,
+Je croyais voir encore, à travers la nuit complète,
+Le temps fuir, emportant tout ce qui fait foi.
+
+A quoi bon, ô mon cœur, pleurer le souvenir ?
+Il s'en va, comme l'eau, sans revenir.
+Et pourtant, au fond de nos larmes, on persévère,
+Car l'amour est plus fort que le temps qui fuit.`
+                    },
+                    {
+                        title: "L'Hymne au Christ",
+                        text: `O toi, qui portes la lumière et la paix,
+J'entends ton souffle au cœur des jours nouveaux ;
+Ta voix descend du ciel comme un chant, comme une flamme,
+Et mon âme se lève en tremblant, dans l'espoir.
+
+Les ombres s'écartent ; la terre se renouvelle ;
+Les pleurs deviennent prières ; les nuits, des chemins ;
+Et dans le silence où l'on se découvre humble,
+Ton amour reconduit chaque pas.`
+                    },
+                    {
+                        title: "L'Isolement",
+                        text: `Je marche en solitaire, et mon âme est attentive,
+Comme une lyre au vent, qui frémit sans bruit ;
+Je cherche dans le monde un éclat qui s'invente,
+Et je rencontre en moi le secret de la nuit.
+
+Le bruit du dehors m'effleure et s'évanouit ;
+Mes pensées sont des oiseaux qui s'élancent en rêve.
+Je goûte un avenir qui n'est pas encore écrit,
+Et je me parle bas comme on confie une trêve.`
+                    }
+                ]
+            }
+        ];
+
+        // Afficher les auteurs
+        function displayAuthors() {
+            const grid = document.getElementById('authorsGrid');
+            grid.innerHTML = '';
+
+            authors.forEach((author, index) => {
+                const card = createAuthorCard(author, index);
+                grid.appendChild(card);
+            });
+        }
+
+        // Créer une carte d'auteur
+        function createAuthorCard(author, index) {
+            const card = document.createElement('div');
+            card.className = 'author-card';
+            card.style.animationDelay = `${index * 0.15}s`;
+
+            const worksList = author.works.map((work, workIndex) => 
+                `<li onclick="showPoem(${index}, ${workIndex})">${work.title}</li>`
+            ).join('');
+
+            const avatarHtml = author.image ? `<img src="${author.image}" alt="${author.name}" class="author-img">` : `<div class="author-avatar">${author.avatar}</div>`;
+
+            card.innerHTML = `
+                <div class="author-header">
+                    ${avatarHtml}
+                    <div class="author-info">
+                        <h3>${author.name}</h3>
+                        <p class="author-years">${author.years}</p>
+                    </div>
+                </div>
+                <p class="author-bio">${author.bio}</p>
+                <div class="author-works">
+                    <h4><i class="fas fa-book"></i> Œuvres majeures</h4>
+                    <ul class="works-list">
+                        ${worksList}
+                    </ul>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Afficher un poème dans le modal
+        function showPoem(authorIndex, workIndex) {
+            const author = authors[authorIndex];
+            const work = author.works[workIndex];
+
+            document.getElementById('poemModalTitle').textContent = work.title;
+            document.getElementById('poemModalAuthor').textContent = `par ${author.name}`;
+            document.getElementById('poemModalText').textContent = work.text;
+            
+            document.getElementById('poemModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Fermer le modal
+        function closePoemModal() {
+            document.getElementById('poemModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Fermer en cliquant sur l'overlay
+        document.getElementById('poemModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePoemModal();
+            }
+        });
+
+        // Fermer avec Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePoemModal();
+            }
+        });
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', displayAuthors);
+    </script>
+</body>
+</html>
+
